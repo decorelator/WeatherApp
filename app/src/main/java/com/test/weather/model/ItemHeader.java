@@ -22,13 +22,4 @@ public class ItemHeader {
         return getDate() + " " + getTemp();
     }
 
-    @Override
-    public int hashCode() {
-        return ;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return super.equals(obj);
-    }
 }
