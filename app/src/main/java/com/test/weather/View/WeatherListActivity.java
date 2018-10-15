@@ -1,19 +1,28 @@
 package com.test.weather.View;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.test.weather.Logic.WeatherHandler;
+import com.test.weather.Logic.location.LocationHelper;
 import com.test.weather.R;
-import com.test.weather.dummy.DummyContent;
+import com.test.weather.adapters.SimpleItemRecyclerViewAdapter;
+import com.test.weather.container.Items;
+import com.test.weather.model.WeatherData;
 
 import java.util.List;
 
@@ -27,11 +36,14 @@ import java.util.List;
  */
 public class WeatherListActivity extends AppCompatActivity {
 
+    private static final int PERMISSIONS_REQUEST_LOCATION = 101;
+    private static final String TAG = WeatherListActivity.class.getCanonicalName();
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
      * device.
      */
     private boolean mTwoPane;
+    private LocationHelper locationHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,78 +65,48 @@ public class WeatherListActivity extends AppCompatActivity {
         View recyclerView = findViewById(R.id.weather_list);
         assert recyclerView != null;
         setupRecyclerView((RecyclerView) recyclerView);
+        checkPermissions();
+        //todo check permission deny
+        initLocation();
+        locationHelper = LocationHelper.getInstance();
+        WeatherHandler.getInstance().init(this);
+        Log.d(TAG, "location lat " + locationHelper.getLatitude());
+
+        WeatherHandler.getInstance().getForecast(locationHelper.getLatitude(), locationHelper.getLongitude());
+
+
     }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-        recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(this, DummyContent.ITEMS, mTwoPane));
+        recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(this, Items.ITEMS, mTwoPane));
     }
 
-    public static class SimpleItemRecyclerViewAdapter
-            extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
+    private void checkPermissions() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_REQUEST_LOCATION);
+        }
+    }
 
-        private final WeatherListActivity mParentActivity;
-        private final List<DummyContent.DummyItem> mValues;
-        private final boolean mTwoPane;
-        private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                DummyContent.DummyItem item = (DummyContent.DummyItem) view.getTag();
-                if (mTwoPane) {
-                    Bundle arguments = new Bundle();
-                    arguments.putString(WeatherDetailFragment.ARG_ITEM_ID, item.id);
-                    WeatherDetailFragment fragment = new WeatherDetailFragment();
-                    fragment.setArguments(arguments);
-                    mParentActivity.getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.weather_detail_container, fragment)
-                            .commit();
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSIONS_REQUEST_LOCATION: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                        initLocation();
+                    }
                 } else {
-                    Context context = view.getContext();
-                    Intent intent = new Intent(context, WeatherDetailActivity.class);
-                    intent.putExtra(WeatherDetailFragment.ARG_ITEM_ID, item.id);
 
-                    context.startActivity(intent);
                 }
+                return;
             }
-        };
 
-        SimpleItemRecyclerViewAdapter(WeatherListActivity parent,
-                                      List<DummyContent.DummyItem> items,
-                                      boolean twoPane) {
-            mValues = items;
-            mParentActivity = parent;
-            mTwoPane = twoPane;
         }
+    }
 
-        @Override
-        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.weather_list_content, parent, false);
-            return new ViewHolder(view);
-        }
-
-        @Override
-        public void onBindViewHolder(final ViewHolder holder, int position) {
-            holder.mIdView.setText(mValues.get(position).id);
-            holder.mContentView.setText(mValues.get(position).content);
-
-            holder.itemView.setTag(mValues.get(position));
-            holder.itemView.setOnClickListener(mOnClickListener);
-        }
-
-        @Override
-        public int getItemCount() {
-            return mValues.size();
-        }
-
-        class ViewHolder extends RecyclerView.ViewHolder {
-            final TextView mIdView;
-            final TextView mContentView;
-
-            ViewHolder(View view) {
-                super(view);
-                mIdView = (TextView) view.findViewById(R.id.id_text);
-                mContentView = (TextView) view.findViewById(R.id.content);
-            }
-        }
+    private void initLocation() {
+        LocationHelper.getInstance().init(this);
     }
 }

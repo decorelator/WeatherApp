@@ -2,13 +2,25 @@ package com.test.weather.model;
 
 public class WeatherData extends BaseData {
 
-    private final String content;
-    private final String details;
+    private String content;
+    private String details;
+    private ItemHeader header;
 
     public WeatherData(String id, String content, String details) {
         this.id = id;
         this.content = content;
         this.details = details;
+    }
+
+    public WeatherData(String id, ItemHeader itemHeader, String details) {
+        this.id = id;
+        this.header = itemHeader;
+        this.details = details;
+
+    }
+
+    public ItemHeader getHeader() {
+        return header;
     }
 
     public String getContent() {
