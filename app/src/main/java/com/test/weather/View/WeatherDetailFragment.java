@@ -1,6 +1,7 @@
 package com.test.weather.View;
 
-import android.app.Activity;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -8,10 +9,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.test.weather.R;
-import com.test.weather.container.Items;
 import com.test.weather.model.WeatherData;
+import com.test.weather.presenter.WeatherDetailsPresenter;
+
+import java.util.Objects;
 
 /**
  * A fragment representing a single Weather detail screen.
@@ -19,17 +23,13 @@ import com.test.weather.model.WeatherData;
  * in two-pane mode (on tablets) or a {@link WeatherDetailActivity}
  * on handsets.
  */
-public class WeatherDetailFragment extends Fragment {
+public class WeatherDetailFragment extends Fragment implements WeatherDetailsPresenter.View {
     /**
      * The fragment argument representing the item ID that this fragment
      * represents.
      */
     public static final String ARG_ITEM_ID = "item_id";
-
-    /**
-     * The dummy content this fragment is presenting.
-     */
-    private WeatherData mItem;
+    private WeatherDetailsPresenter presenter;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -41,31 +41,42 @@ public class WeatherDetailFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        if (getArguments().containsKey(ARG_ITEM_ID)) {
-            // Load the dummy content specified by the fragment
-            // arguments. In a real-world scenario, use a Loader
-            // to load content from a content provider.
-            mItem = Items.ITEM_MAP.get(getArguments().getString(ARG_ITEM_ID));
-
-            Activity activity = this.getActivity();
-            CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
-            if (appBarLayout != null) {
-                appBarLayout.setTitle(mItem.getContent());
-            }
-        }
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.weather_detail, container, false);
 
-        // Show the dummy content as text in a TextView.
-        if (mItem != null) {
-            ((TextView) rootView.findViewById(R.id.weather_detail)).setText(mItem.getContent());
+        return inflater.inflate(R.layout.weather_detail, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        presenter = new WeatherDetailsPresenter(this);
+        assert getArguments() != null;
+        presenter.showInfo(getArguments().getLong(ARG_ITEM_ID));
+
+        super.onViewCreated(view, savedInstanceState);
+    }
+
+    @Override
+    public void updateData(WeatherData weatherData) {
+        CollapsingToolbarLayout appBarLayout = Objects.requireNonNull(getActivity()).findViewById(R.id.toolbar_layout);
+        if (appBarLayout != null) {
+            appBarLayout.setTitle(weatherData.getHeader().toString());
         }
 
-        return rootView;
+        ((TextView) Objects.requireNonNull(getView()).findViewById(R.id.weather_detail)).setText(weatherData.getDetails().print(getActivity()));
+    }
+
+    @Override
+    public void showError(String error) {
+        Toast.makeText(getActivity(), error, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onDestroy() {
+        presenter.destroy();
+        super.onDestroy();
     }
 }

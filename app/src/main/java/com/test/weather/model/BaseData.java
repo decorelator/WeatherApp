@@ -2,9 +2,13 @@ package com.test.weather.model;
 
 public class BaseData {
 
-    protected String id;
+    protected long id;
 
-    public String getId() {
+    BaseData(long id) {
+        this.id = id;
+    }
+
+    public long getId() {
         return id;
     }
 

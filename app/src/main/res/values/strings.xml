@@ -1,4 +1,12 @@
 <resources>
     <string name="app_name">Weather</string>
     <string name="title_weather_detail">Weather Detail</string>
+
+    <string name="detailTemperature">Temperature: %1$.2f</string>
+    <string name="detailTemperatureMin">Minimum temp: %1$.2f</string>
+    <string name="detailTemperatureMax">Maximum temp: %1$.2f</string>
+    <string name="detailPressure">Pressure: %1$.2f</string>
+    <string name="detailSeaLevel">Sea Level: %1$.2f</string>
+    <string name="detailGrndLevel">Ground level: %1$.2f</string>
+    <string name="detailHumidity">Humidity: %1$.2f</string>
 </resources>

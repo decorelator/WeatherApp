@@ -1,4 +1,4 @@
-package com.test.weather.Logic.location;
+package com.test.weather.Logic;
 
 import android.Manifest;
 import android.content.Context;
@@ -11,11 +11,17 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
+import com.test.weather.View.WeatherApp;
+
 import static android.content.ContentValues.TAG;
 import static android.content.Context.LOCATION_SERVICE;
 
 
 public class LocationHelper {
+    public interface onLocChanged {
+        void onChanged(String latitude, String longitude);
+    }
+
     public class LocListener implements LocationListener {
 
         @Override
@@ -23,6 +29,9 @@ public class LocationHelper {
 
             latitude = String.valueOf(location.getLatitude());
             longitude = String.valueOf(location.getLongitude());
+            if (onLocChanged != null) {
+                onLocChanged.onChanged(latitude, longitude);
+            }
         }
 
         @Override
@@ -43,26 +52,27 @@ public class LocationHelper {
     }
 
     private static final LocationHelper thiz = new LocationHelper();
-    private LocationManager locationManager;
-    private LocListener locationListener;
     private String latitude;
     private String longitude;
+    private onLocChanged onLocChanged = null;
+
+    public void setOnLocChanged(LocationHelper.onLocChanged onLocChanged) {
+        this.onLocChanged = onLocChanged;
+    }
 
     public static LocationHelper getInstance() {
         return thiz;
     }
 
     private LocationHelper() {
-    }
-
-    public void init(Context context) {
+        Context context = WeatherApp.getContext();
         Criteria criteria = new Criteria();
         criteria.setAccuracy(Criteria.ACCURACY_LOW);
         criteria.setPowerRequirement(Criteria.POWER_LOW);
         criteria.setAltitudeRequired(false);
         criteria.setBearingRequired(false);
 
-        locationManager = (LocationManager) context.getSystemService(LOCATION_SERVICE);
+        LocationManager locationManager = (LocationManager) context.getSystemService(LOCATION_SERVICE);
 
         String provider = locationManager.getBestProvider(criteria, true);
 
@@ -74,7 +84,7 @@ public class LocationHelper {
             Log.v(TAG, "Provider: " + provider);
         }
 
-        locationListener = new LocListener();
+        LocListener locationListener = new LocListener();
 
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -88,7 +98,6 @@ public class LocationHelper {
         }
         locationManager.requestLocationUpdates(provider, 1L, 1f, locationListener);
 
-        // connect to the GPS location service
         Location oldLocation = locationManager.getLastKnownLocation(provider);
 
         if (oldLocation != null) {
@@ -102,10 +111,7 @@ public class LocationHelper {
             return;
         }
 
-
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3000, 0, new LocListener());
-
-
     }
 
     public String getLatitude() {
@@ -114,9 +120,5 @@ public class LocationHelper {
 
     public String getLongitude() {
         return longitude;
-    }
-
-    public String getCity(){
-        return "city";
     }
 }

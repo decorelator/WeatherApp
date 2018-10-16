@@ -24,10 +24,10 @@ public class WeatherDetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_weather_detail);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.detail_toolbar);
+        Toolbar toolbar = findViewById(R.id.detail_toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -55,8 +55,8 @@ public class WeatherDetailActivity extends AppCompatActivity {
             // Create the detail fragment and add it to the activity
             // using a fragment transaction.
             Bundle arguments = new Bundle();
-            arguments.putString(WeatherDetailFragment.ARG_ITEM_ID,
-                    getIntent().getStringExtra(WeatherDetailFragment.ARG_ITEM_ID));
+            arguments.putLong(WeatherDetailFragment.ARG_ITEM_ID,
+                    getIntent().getLongExtra(WeatherDetailFragment.ARG_ITEM_ID, 0));
             WeatherDetailFragment fragment = new WeatherDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()

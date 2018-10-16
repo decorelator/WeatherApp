@@ -29,7 +29,7 @@ public class SimpleItemRecyclerViewAdapter
             WeatherData item = (WeatherData) view.getTag();
             if (mTwoPane) {
                 Bundle arguments = new Bundle();
-                arguments.putString(WeatherDetailFragment.ARG_ITEM_ID, item.getId());
+                arguments.putLong(WeatherDetailFragment.ARG_ITEM_ID, item.getId());
                 WeatherDetailFragment fragment = new WeatherDetailFragment();
                 fragment.setArguments(arguments);
                 mParentActivity.getSupportFragmentManager().beginTransaction()
@@ -63,7 +63,6 @@ public class SimpleItemRecyclerViewAdapter
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.mIdView.setText(mValues.get(position).getHeader().toString());
-        holder.mContentView.setText(mValues.get(position).getContent());
 
         holder.itemView.setTag(mValues.get(position));
         holder.itemView.setOnClickListener(mOnClickListener);
@@ -76,12 +75,10 @@ public class SimpleItemRecyclerViewAdapter
 
     class ViewHolder extends RecyclerView.ViewHolder {
         final TextView mIdView;
-        final TextView mContentView;
 
         ViewHolder(View view) {
             super(view);
             mIdView = (TextView) view.findViewById(R.id.id_text);
-            mContentView = (TextView) view.findViewById(R.id.content);
         }
     }
 }

@@ -1,8 +1,6 @@
 package com.test.weather.View;
 
 import android.Manifest;
-import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -11,20 +9,16 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.test.weather.Logic.WeatherHandler;
-import com.test.weather.Logic.location.LocationHelper;
 import com.test.weather.R;
 import com.test.weather.adapters.SimpleItemRecyclerViewAdapter;
-import com.test.weather.container.Items;
 import com.test.weather.model.WeatherData;
+import com.test.weather.presenter.WeatherListPresenter;
 
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  * An activity representing a list of Details. This activity
@@ -34,23 +28,26 @@ import java.util.List;
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-public class WeatherListActivity extends AppCompatActivity {
+public class WeatherListActivity extends AppCompatActivity implements WeatherListPresenter.View {
 
     private static final int PERMISSIONS_REQUEST_LOCATION = 101;
-    private static final String TAG = WeatherListActivity.class.getCanonicalName();
+    //private static final String TAG = WeatherListActivity.class.getCanonicalName();
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
      * device.
      */
     private boolean mTwoPane;
-    private LocationHelper locationHelper;
+    private RecyclerView recyclerView;
+    private WeatherListPresenter presenter = new WeatherListPresenter(this);
+    private TextView cityTv;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_weather_list);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
 
@@ -62,51 +59,58 @@ public class WeatherListActivity extends AppCompatActivity {
             mTwoPane = true;
         }
 
-        View recyclerView = findViewById(R.id.weather_list);
+        cityTv = findViewById(R.id.cityTv);
+        recyclerView = findViewById(R.id.weather_list);
         assert recyclerView != null;
-        setupRecyclerView((RecyclerView) recyclerView);
         checkPermissions();
-        //todo check permission deny
-        initLocation();
-        locationHelper = LocationHelper.getInstance();
-        WeatherHandler.getInstance().init(this);
-        Log.d(TAG, "location lat " + locationHelper.getLatitude());
 
-        WeatherHandler.getInstance().getForecast(locationHelper.getLatitude(), locationHelper.getLongitude());
-
-
-    }
-
-    private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-        recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(this, Items.ITEMS, mTwoPane));
     }
 
     private void checkPermissions() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_REQUEST_LOCATION);
+        } else {
+            presenter.start();
         }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
+                                           @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
             case PERMISSIONS_REQUEST_LOCATION: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
                     if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                        initLocation();
+                        presenter.start();
                     }
                 } else {
-
+                    Toast.makeText(this, "Need location permission", Toast.LENGTH_LONG).show();
+                    finish();
                 }
-                return;
             }
 
         }
     }
 
-    private void initLocation() {
-        LocationHelper.getInstance().init(this);
+
+    @Override
+    public void updateList(ArrayList<WeatherData> WeatherData) {
+        recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(this, WeatherData, mTwoPane));
+    }
+
+    @Override
+    public void updateCity(String city) {
+        cityTv.setText(city);
+    }
+
+    @Override
+    public void showError(String error) {
+        Toast.makeText(this, error, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        presenter.destroy();
+        super.onDestroy();
     }
 }
