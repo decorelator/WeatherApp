@@ -20,6 +20,41 @@ public class DetailedInfo implements PrintableInfo {
     private double sea_level;
     private double grnd_level;
     private double humidity;
+    private Weather weather;
+
+    public Weather getWeather() {
+        return weather;
+    }
+
+    public class Weather {
+        private String status;
+        private String desc;
+        private String ico;
+
+        public String getStatus() {
+            return status;
+        }
+
+        public String getDesc() {
+            return desc;
+        }
+
+        public String getIco() {
+            return ico;
+        }
+
+        public Weather(JSONObject jsonObject) throws JSONException {
+            status = jsonObject.getString("main");
+            desc = jsonObject.getString("description");
+            ico = jsonObject.getString("icon");
+
+        }
+
+        @Override
+        public String toString() {
+            return getDesc();
+        }
+    }
 
     public DetailedInfo(JSONObject jsonObject) throws JSONException {
 
@@ -33,6 +68,7 @@ public class DetailedInfo implements PrintableInfo {
         grnd_level = main.getDouble("grnd_level");
         humidity = main.getDouble("temp_kf");
 
+        weather = new Weather(jsonObject.getJSONArray("weather").getJSONObject(0));
     }
 
 

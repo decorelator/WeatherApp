@@ -1,5 +1,6 @@
 package com.test.weather.View;
 
+import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CollapsingToolbarLayout;
@@ -8,6 +9,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,6 +32,7 @@ public class WeatherDetailFragment extends Fragment implements WeatherDetailsPre
      */
     public static final String ARG_ITEM_ID = "item_id";
     private WeatherDetailsPresenter presenter;
+    private ImageView weatherIco;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -56,6 +59,7 @@ public class WeatherDetailFragment extends Fragment implements WeatherDetailsPre
         assert getArguments() != null;
         presenter.showInfo(getArguments().getLong(ARG_ITEM_ID));
 
+        weatherIco = view.findViewById(R.id.weatherImg);
         super.onViewCreated(view, savedInstanceState);
     }
 
@@ -67,6 +71,12 @@ public class WeatherDetailFragment extends Fragment implements WeatherDetailsPre
         }
 
         ((TextView) Objects.requireNonNull(getView()).findViewById(R.id.weather_detail)).setText(weatherData.getDetails().print(getActivity()));
+        ((TextView) getView().findViewById(R.id.weatherInfoTV)).setText(weatherData.getDetails().getWeather().toString());
+    }
+
+    @Override
+    public void updateImage(Bitmap result) {
+        weatherIco.setImageBitmap(result);
     }
 
     @Override
