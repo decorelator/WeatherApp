@@ -95,6 +95,7 @@ public class WeatherHandler {
     }
 
     private void parse(JSONObject response) throws JSONException {
+        weatherData.clear();
         for (int i = 0; i < response.getJSONArray("list").length(); i++) {
             JSONObject item = response.getJSONArray("list").getJSONObject(i);
             long dt = item.getLong("dt");
