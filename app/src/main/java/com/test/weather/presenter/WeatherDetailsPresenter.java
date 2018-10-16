@@ -3,7 +3,6 @@ package com.test.weather.presenter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
-import android.widget.ImageView;
 
 import com.test.weather.Logic.WeatherHandler;
 import com.test.weather.model.WeatherData;
